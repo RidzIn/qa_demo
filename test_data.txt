@@ -1,0 +1,26 @@
+Machine Learning is a subfield of Artificial Intelligence (AI) that focuses on developing
+algorithms and models that enable computers to learn and make predictions or decisions
+without being explicitly programmed. It involves the study of techniques that allow
+computers to automatically learn from data, identify patterns, and improve their performance over time.
+
+Key Words and Definitions:
+
+1. Artificial Intelligence (AI) - The theory and development of computer systems capable of performing tasks that require human intelligence. It encompasses various subfields, including Machine Learning.
+
+2. Algorithm - A step-by-step procedure or set of rules followed in calculations or problem-solving operations. In Machine Learning, algorithms are used to train models and make predictions.
+
+3. Model - A mathematical representation or abstraction of a real-world system or process. In Machine Learning, models are trained using data to make predictions or decisions.
+
+4. Data - Facts, statistics, or information that can be collected, processed, and analyzed. In Machine Learning, data is used to train models and improve their performance.
+
+5. Pattern - A regular or predictable arrangement or behavior observed in data. In Machine Learning, identifying patterns is crucial for making accurate predictions.
+
+6. Performance - Refers to how well a machine learning model performs on a given task or dataset. It is usually measured using metrics such as accuracy, precision, recall, or F1 score.
+
+7. Supervised Learning - A type of Machine Learning where the algorithm learns from labeled data. Each data point is associated with a corresponding label or target value, and the algorithm learns to make predictions based on this labeled data.
+
+8. Unsupervised Learning - A type of Machine Learning where the algorithm learns from unlabeled data. The algorithm identifies patterns or structures in the data without any explicit guidance.
+
+9. Reinforcement Learning - A type of Machine Learning where an agent learns by interacting with an environment and receiving feedback in the form of rewards or punishments. The agent aims to maximize the cumulative reward it receives by taking appropriate actions.
+
+10. Deep Learning - A subset of Machine Learning that focuses on artificial neural networks with multiple layers. Deep Learning algorithms are capable of learning hierarchical representations of data and have achieved state-of-the-art performance in various domains.
