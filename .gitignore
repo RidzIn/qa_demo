@@ -1,4 +1,4 @@
-.env
+config.env
 venv
 logs
 .idea
