@@ -3,3 +3,4 @@ tenacity==8.2.2
 openai==0.27.8
 python-dotenv==1.0.0
 streamlit==1.24.1
+pypdf2==3.0.1

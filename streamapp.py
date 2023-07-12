@@ -1,18 +1,25 @@
 import streamlit as st
 from my_openai_api import *
 """
-# GPT Chat by Ridz
+# Q/A model by Ridz
+
+## Rules
+**You need to upload your knowledge base in text field below. Model will generate JSON format text using ONLY data you 
+provided.**
 """
 
-example = 'Generate 500 word text, include key words and definitions, but keep text unstructured. ' \
-          'Topic: Machine Learning.'
+uploaded_file = st.file_uploader("Upload your knowledge file", type=['pdf'])
 
-prompt = st.text_area('**Input your prompt to Chat**')
+if uploaded_file is not None:
+    knowledge_base = extract_text_from_pdf(uploaded_file)
+    download_text_as_file(knowledge_base, generate_log_name() + '.txt')
 
-generate_answer = st.button('**Get answer**')
-if generate_answer:
-    formatted_prompt = [{'role': 'user', 'content': prompt}]
-    response = chat_completion_request(formatted_prompt)
-    st.write(get_message_from_response(response))
+    generate_answer = st.button('**Get answer**')
+    if generate_answer:
+        response = chat_completion_request(qa_prompt(knowledge_base))
+        message = get_message_from_response(response)
+        st.json(message)
+        save_response_to_log(response)
+        download_text_as_file(message, generate_log_name() + '.txt')
 
 
