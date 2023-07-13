@@ -1,22 +1,22 @@
 import json
 import tempfile
-
 import PyPDF2
 import streamlit as st
-
 import requests
 import openai
-
 from tenacity import wait_random_exponential, stop_after_attempt, retry
 from datetime import datetime
 import os
 from dotenv import load_dotenv
+import tiktoken
 
 
 load_dotenv(dotenv_path='config.env')
 
 GPT_MODEL = os.getenv('GPT_MODEL')
 API_KEY = os.getenv('OPENAI_API_KEY')
+
+ENCODING_NAME = os.getenv('ENCODING_NAME')
 
 openai.api_key = API_KEY
 
@@ -85,21 +85,26 @@ def save_knowledge_base(knowledge_base):
     except Exception as e:
         print(f"An unexpected error occurred in save_knowledge_base(): {str(e)}")
 
-def download_text_as_file(text, filename):
-    text_with_spaces = ' '.join(text.splitlines())
+def download_file(data, button_name, filename, mime):
+    with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+        if mime == 'text/plain':
+            text_with_spaces = ' '.join(data.splitlines())
+            temp_file.write(text_with_spaces.encode())
+        elif mime == 'application/json':
+            temp_file.write(data.encode())
+        else:
+            raise ValueError('Unsupported MIME type.')
 
-    temp_file = tempfile.NamedTemporaryFile(delete=False)
-    temp_file.write(text_with_spaces.encode())
-    temp_file.close()
+        temp_file.close()
 
-    with open(temp_file.name, 'rb') as file:
-        file_data = file.read()
-        st.download_button(
-            label='Download knowledge base as txt',
-            data=file_data,
-            file_name=filename,
-            mime='text/plain'
-        )
+        with open(temp_file.name, 'rb') as file:
+            file_data = file.read()
+            st.download_button(
+                label=f'{button_name}',
+                data=file_data,
+                file_name=filename,
+                mime=mime
+            )
 
 def read_file(file_path):
     try:
@@ -113,13 +118,23 @@ def read_file(file_path):
     except Exception as e:
         print(f"An unexpected error occurred in read_file(): {str(e)}")
 
-def qa_prompt(knowledge_base, number_of_question='as much as you can, but dont repeat yourself'):
+def qa_prompt(knowledge_base, do_rephrasing=True, number_of_question=None):
+    rephrasing = (lambda arg: "Give short answers, but don't lose context." if arg
+                         else "Try to avoid rephrasing if it's possible.")(do_rephrasing)
+
+    number_of_question = (lambda arg: 'as much as you can, but dont repeat yourself' if number_of_question is None
+                          else str(number_of_question))
+    form = "{number: [{question:answer}]}"
+
+    system_prompt_content = f"""User will provide you with knowledge base.
+                                Your task: generate questions and answers.
+                                Format: JSON dictionary {form}
+                                Question: should be which can be appeared on the test.
+                                Answers: should be short, but don't lose context.
+                                USE ONLY provided knowledge base, you don't know anything except that knowledge base.
+                                """
     return [{'role': 'system',
-             'content': "User will provide you with knowledge base. "
-                        "Your task: generate json dictionary with format {'question':'answer'}. "
-                        "USE ONLY provided knowledge base, you don't know anything except that knowledge base. "
-                        "Try to avoid rephrasing if it's possible."
-                        f"Generate {number_of_question} question and answers"},
+             'content': system_prompt_content},
             {'role': 'user',
              'content': knowledge_base}]
 
@@ -128,5 +143,13 @@ def extract_text_from_pdf(file):
     text = ''
     for page in range(len(reader.pages)):
         text += reader.pages[page].extract_text()
+    # for page in range(20):
+    #     text += reader.pages[page].extract_text()
     return text
 
+
+def num_tokens_from_string(string: str) -> int:
+    """Returns the number of tokens in a text string."""
+    encoding = tiktoken.get_encoding(ENCODING_NAME)
+    num_tokens = len(encoding.encode(string))
+    return num_tokens
