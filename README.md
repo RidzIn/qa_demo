@@ -3,7 +3,9 @@
 > ### Create Q/A json file, to prepare for your exams
 ---
 ### GUI
-![image](gui.png)
+   ![image](1.png)
+   ![image](2.png)
+   ![image](3.png)
 
 # Setup
 
@@ -20,7 +22,6 @@
 1. Go to https://platform.openai.com/account/api-keys
 
 2. Click Create new secret key
-
    ![image](openai_api.png)
 
 3. Store the SECRET KEY to `.env` under the `OPENAI_API_KEY`

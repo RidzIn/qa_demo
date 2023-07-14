@@ -10,7 +10,6 @@ import os
 from dotenv import load_dotenv
 import tiktoken
 
-
 load_dotenv(dotenv_path='config.env')
 
 GPT_MODEL = os.getenv('GPT_MODEL')
@@ -20,8 +19,12 @@ ENCODING_NAME = os.getenv('ENCODING_NAME')
 
 openai.api_key = API_KEY
 
+
 @retry(wait=wait_random_exponential(min=1, max=40), stop=stop_after_attempt(3))
 def chat_completion_request(messages, functions=None, function_call=None, model=GPT_MODEL):
+    """
+    Sends a request to the OpenAI API for chat completion.
+    """
     headers = {
         "Content-Type": "application/json",
         "Authorization": "Bearer " + openai.api_key,
@@ -43,7 +46,11 @@ def chat_completion_request(messages, functions=None, function_call=None, model=
         print(f"Exception: {e}")
         return e
 
+
 def get_message_from_response(response, choice_index=0):
+    """
+        Extracts the message content from the response object.
+    """
     try:
         return response.json()['choices'][choice_index]['message']['content']
     except Exception as e:
@@ -51,22 +58,22 @@ def get_message_from_response(response, choice_index=0):
         print(f'Exception: {e}')
         return e
 
-def get_token_usage(response):
-    try:
-        return response.json()['usage']
-    except Exception as e:
-        print('Could not load token usage from response')
-        print(f'Exception: {e}')
-        return e
 
 def generate_log_name():
+    """
+    Generates a log name based on the current timestamp.
+    """
     try:
         timestamp = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
         return f"log_{timestamp}"
     except Exception as e:
         print(f'An unexpected error occurred in generate_log_name(): {str(e)}')
 
+
 def save_response_to_log(response):
+    """
+     Saves the API response to a log file.
+    """
     try:
         log_file_name = generate_log_name()
         file_path = f"logs/{log_file_name}.json"
@@ -78,14 +85,20 @@ def save_response_to_log(response):
         print(f"An unexpected error occurred in save_response_to_log(): {str(e)}")
 
 
-def save_knowledge_base(knowledge_base):
-    try:
-        with open('test.txt', 'w+') as file:
-            file.write(knowledge_base)
-    except Exception as e:
-        print(f"An unexpected error occurred in save_knowledge_base(): {str(e)}")
-
 def download_file(data, button_name, filename, mime):
+    """
+        Downloads a file with the specified data, button name, filename, and MIME type.
+
+        Args:
+            data (str): The data to be written to the file.
+            button_name (str): The label of the download button.
+            filename (str): The name of the file to be downloaded.
+            mime (str): The MIME type of the file.
+
+        Raises:
+            ValueError: If the provided MIME type is not supported.
+
+    """
     with tempfile.NamedTemporaryFile(delete=False) as temp_file:
         if mime == 'text/plain':
             text_with_spaces = ' '.join(data.splitlines())
@@ -106,6 +119,7 @@ def download_file(data, button_name, filename, mime):
                 mime=mime
             )
 
+
 def read_file(file_path):
     try:
         with open(file_path, 'r') as file:
@@ -118,19 +132,21 @@ def read_file(file_path):
     except Exception as e:
         print(f"An unexpected error occurred in read_file(): {str(e)}")
 
-def qa_prompt(knowledge_base, do_rephrasing=True, number_of_question=None):
-    rephrasing = (lambda arg: "Give short answers, but don't lose context." if arg
-                         else "Try to avoid rephrasing if it's possible.")(do_rephrasing)
 
-    number_of_question = (lambda arg: 'as much as you can, but dont repeat yourself' if number_of_question is None
-                          else str(number_of_question))
+def qa_prompt(knowledge_base):
+    """
+    Generates a question-answering prompt based on the provided knowledge base.
+    """
     form = "{number: [{question:answer}]}"
 
     system_prompt_content = f"""User will provide you with knowledge base.
                                 Your task: generate questions and answers.
                                 Format: JSON dictionary {form}
-                                Question: should be which can be appeared on the test.
+                                Question: should be which can be appeared on the test. 
+                                Pay attention to definitions and algorithms in text, they are the most important, and
+                                must be included in questions.
                                 Answers: should be short, but don't lose context.
+                                Make AS MUCH AS YOU CAN questions and answers, but keep them different.
                                 USE ONLY provided knowledge base, you don't know anything except that knowledge base.
                                 """
     return [{'role': 'system',
@@ -138,13 +154,16 @@ def qa_prompt(knowledge_base, do_rephrasing=True, number_of_question=None):
             {'role': 'user',
              'content': knowledge_base}]
 
+
 def extract_text_from_pdf(file):
+    """
+    Extracts text from a PDF file.
+
+    """
     reader = PyPDF2.PdfReader(file)
     text = ''
     for page in range(len(reader.pages)):
         text += reader.pages[page].extract_text()
-    # for page in range(20):
-    #     text += reader.pages[page].extract_text()
     return text
 
 
